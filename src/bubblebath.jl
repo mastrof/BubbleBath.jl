@@ -2,7 +2,7 @@ export bubblebath
 
 """
     bubblebath(
-        radius_pdf, ϕ_max::Real, extent::NTuple{D,Float64};
+        radius_pdf, ϕ_max::Real, extent::NTuple{D,Real};
         through_boundaries = false,
         max_tries = 10000, max_fails = 100
     ) where D
@@ -23,7 +23,7 @@ The domain is filled with spheres in order of decreasing radius.
 function bubblebath(
     radius_pdf,
     ϕ_max::Real,
-    extent::NTuple{D,Float64};
+    extent::NTuple{D,Real};
     min_distance::Real = 0.0,
     through_boundaries = false,
     max_tries = 10000,
@@ -37,7 +37,7 @@ end
 
 """
     generate_radii(
-        radius_pdf, ϕ_max::Real, extent::NTuple{D,Float64}
+        radius_pdf, ϕ_max::Real, extent::NTuple{D,Real}
     ) where D
 Generate a vector of radii from the `radius_pdf` distribution,
 with a limit packing fraction `ϕ_max` in the domain `extent`.
@@ -45,7 +45,7 @@ with a limit packing fraction `ϕ_max` in the domain `extent`.
 function generate_radii(
     radius_pdf,
     ϕ_max::Real,
-    extent::NTuple{D,Float64}
+    extent::NTuple{D,Real}
 )::Vector{Float64} where D
     radii = Float64[]
     V₀ = prod(extent)
@@ -64,7 +64,7 @@ end
 
 """
     bubblebath(
-        radii::Vector{Float64}, extent::NTuple{D,Float64};
+        radii::Vector{<:Real}, extent::NTuple{D,Real};
         min_distance = 0.0,
         through_boundaries = false,
         max_tries = 10000, max_fails = 100
@@ -72,8 +72,8 @@ end
 Generate a bath of spheres with radii `radii` in the domain `extent`.
 """
 function bubblebath(
-    radii::Vector{Float64},
-    extent::NTuple{D,Float64};
+    radii::Vector{<:Real},
+    extent::NTuple{D,Real};
     min_distance::Real = 0.0,
     through_boundaries = false,
     max_tries = 10000,
@@ -110,12 +110,12 @@ function bubblebath(
 end
 
 """
-    is_overlapping(p::NTuple{D,Float64}, r::Real, spheres::Vector{Sphere{D}}) where D
+    is_overlapping(p::NTuple{D,Real}, r::Real, spheres::Vector{Sphere{D}}) where D
 Test if a sphere of radius `r` centered at `p` overlaps with any sphere in `spheres`.
 Surface contact is not counted as overlap.
 """
 function is_overlapping(
-    p::NTuple{D,Float64}, r::Real,
+    p::NTuple{D,Real}, r::Real,
     spheres::Vector{Sphere{D}}
 )::Bool where D
     for sphere in spheres
@@ -127,25 +127,25 @@ function is_overlapping(
 end
 
 """
-    is_overlapping(p₁::NTuple{D,Float64}, r₁::Real, s₂::Sphere{D}) where D
+    is_overlapping(p₁::NTuple{D,Real}, r₁::Real, s₂::Sphere{D}) where D
 Test if a sphere of radius `r₁` centered at `p₁` overlaps with sphere `s₂`.
 Surface contact is not counted as overlap.
 """
 @inline function is_overlapping(
-    p₁::NTuple{D,Float64}, r₁::Real,
+    p₁::NTuple{D,Real}, r₁::Real,
     s₂::Sphere{D}
 )::Bool where D
     is_overlapping(p₁, r₁, s₂.pos, s₂.radius)
 end
 
 """
-    is_overlapping(p₁::NTuple{D,Float64}, r₁::Real, p₂::NTuple{D,Float64}, r₂::Real) where D
+    is_overlapping(p₁::NTuple{D,Real}, r₁::Real, p₂::NTuple{D,Real}, r₂::Real) where D
 Test if two spheres with radii `r₁` and `r₂`, centered at `p₁` and `p₂` respectively,
 are overlapping. Surface contact is not counted as overlap.
 """
 @inline function is_overlapping(
-    p₁::NTuple{D,Float64}, r₁::Real,
-    p₂::NTuple{D,Float64}, r₂::Real
+    p₁::NTuple{D,Real}, r₁::Real,
+    p₂::NTuple{D,Real}, r₂::Real
 )::Bool where D
     norm(p₁ .- p₂) < r₁ + r₂
 end
