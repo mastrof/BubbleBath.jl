@@ -1,12 +1,12 @@
 export packing_fraction
 
 """
-    packing_fraction(spheres::Vector{Sphere{D}}, extent::NTuple{D,Float64}) where D
+    packing_fraction(spheres::Vector{Sphere{D}}, extent::NTuple{D,Real}) where D
 Evaluate the packing fraction of `spheres` in domain `extent`.
 """
 function packing_fraction(
     spheres::Vector{Sphere{D}},
-    extent::NTuple{D,Float64}
+    extent::NTuple{D,Real}
 )::Float64 where D
     V₀ = prod(extent)
     V = 0.0
@@ -28,13 +28,13 @@ Evaluate volume of a three-dimensional sphere (4πr³/3)
 volume(sphere::Sphere{3})::Float64 = 4π/3 * sphere.radius^3
 
 """
-    packing_fraction(radii::Vector{Real}, extent::NTuple{D,Float64}) where D
+    packing_fraction(radii::Vector{Real}, extent::NTuple{D,Real}) where D
 Evaluate the packing fraction of a collection of spheres with radii `radii`
 in domain `extent`.
 """
 function packing_fraction(
     radii::Vector{Real},
-    extent::NTuple{D, Float64}
+    extent::NTuple{D, Real}
 )::Float64 where D
     V₀ = prod(extent)
     V = 0.0
