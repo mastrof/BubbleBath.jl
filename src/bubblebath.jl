@@ -96,11 +96,15 @@ function bubblebath(
                 end
             end
             pos = Δ .+ Tuple(rand(D)) .* (extent .- 2Δ)
-            if is_overlapping(pos, radius+min_distance, spheres)
-                tries += 1
-            else
+            isvalid_pos = (
+                !is_overlapping(pos, radius+min_distance, spheres) &&
+                (through_boundaries || is_inside_boundaries(pos, radius, extent))
+            )
+            if isvalid_pos
                 push!(spheres, Sphere(pos, radius))
                 break
+            else
+                tries += 1
             end
         end
     end
@@ -148,4 +152,19 @@ are overlapping. Surface contact is not counted as overlap.
     p₂::NTuple{D,Real}, r₂::Real
 )::Bool where D
     norm(p₁ .- p₂) < r₁ + r₂
+end
+
+"""
+    is_inside_boundaries(pos::NTuple{D,Real}, radius::Real, extent::NTuple{D,Real}) where D
+Check if a sphere of radius `radius` centered at `pos` is within domain `extent`.
+"""
+function is_inside_boundaries(
+    pos::NTuple{D,Real}, radius::Real, extent::NTuple{D,Real}
+)::Bool where D
+    for i in 1:D
+        if !(radius ≤ pos[i] ≤ radius+extent[i])
+            return false
+        end
+    end
+    return true
 end
