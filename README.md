@@ -11,6 +11,14 @@ Generate loose packings of spheres in orthorhombic domains, in 2 and 3 dimension
 * Control minimum allowed distance between spheres.
 * Decide whether spheres can cross through domain boundaries or not.
 
+`BubbleBath.jl` just employs the trivial brute-force method,
+with the only peculiarity that spheres are introduced in
+order of decreasing radius.
+Dense packings are obtained with reasonable performance,
+but spatial correlations between sphere sizes are introduced.
+
+This is **not** an algorithm to generate tight, space-filling packings.
+
 ## Example usage
 The package exports a `Sphere{D}` type, which is just a wrapper around a 
 position `pos::NTuple{D,Float64}` and a radius `radius::Float64`, and
