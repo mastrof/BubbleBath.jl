@@ -5,11 +5,12 @@ using Test
 
 @testset "BubbleBath.jl" begin
     @testset "Spheres" begin
+        # sphere dimensionality must match pos length
+        @test_throws MethodError Sphere{2}((1.0,1.0,1.0), 1)
+        @test_throws MethodError Sphere{3}((1.0,1.0), 1)
+        # if sphere dimensionality is not specified, inherit from pos
         radius = 1
         pos = ntuple(_ -> 5.0, 3)
-        # sphere dimensionality must match pos length
-        @test_throws MethodError Sphere{2}(pos, radius)
-        # if sphere dimensionality is not specified, inherit from pos
         sphere = Sphere(pos, radius)
         @test sphere isa Sphere{3}
         # check fields are assigned correctly
@@ -74,5 +75,26 @@ using Test
             for i in eachindex(bath), j in eachindex(bath) if j>i
         ])
         @test all(surface_distances .≥ min_distance)
+    end
+
+    @testset "In-place Bubblebath" begin
+        L = 10
+        extent = (L,L)
+        # initialize with one sphere of radius 3
+        spheres = [Sphere((L/2,L/2), 3.0)]
+        # add 10 more spheres of radius 1
+        r = 1.0
+        radii = repeat([r], 10)
+        bubblebath!(spheres, radii, extent)
+        # should be a total of 11 spheres
+        @test length(spheres) == 11
+        @test count(map(s -> s.radius==3, spheres)) == 1
+        @test count(map(s -> s.radius==1, spheres)) == 10
+        # the new spheres should not overlap with the original one
+        overlaps = [
+            norm(spheres[1].pos .- s.pos) ≤ spheres[1].radius + s.radius
+            for s in spheres[2:end]
+        ]
+        @test !(any(overlaps))
     end
 end
