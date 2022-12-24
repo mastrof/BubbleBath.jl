@@ -162,7 +162,7 @@ function is_inside_boundaries(
     pos::NTuple{D,Real}, radius::Real, extent::NTuple{D,Real}
 )::Bool where D
     for i in 1:D
-        if !(radius ≤ pos[i] ≤ radius+extent[i])
+        if !(radius ≤ pos[i] ≤ extent[i]-radius)
             return false
         end
     end
