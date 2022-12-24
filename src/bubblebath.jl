@@ -1,4 +1,4 @@
-export bubblebath
+export bubblebath, bubblebath!
 
 """
     bubblebath(
@@ -167,4 +167,92 @@ function is_inside_boundaries(
         end
     end
     return true
+end
+
+
+"""
+    bubblebath!(
+        spheres::Vector{Sphere{D}},
+        radius_pdf, ϕ_max::Real, extent::NTuple{D,Real};
+        min_distance::Real = 0.0, through_boundaries = false,
+        max_tries = 10000, max_fails = 100
+    )::Vector{Sphere{D}} where D
+In-place version of `bubblebath`, adds new spheres to the `spheres`
+vector, which can be already populated.
+
+Here, `ϕ_max` is assumed to also account for all spheres that might
+already be present in the `spheres` vector.
+E.g. if `packing_fraction(spheres, extent)` is 0.4 and `ϕ_max=0.3`,
+then the algorithm assumes that the target packing is already reached
+and no new spheres are generated.
+To exclude pre-initialized spheres from the packing fraction limit,
+increase `ϕ_max` accordingly
+(`ϕ_max = 0.3+packing_fraction(spheres,extent)` for this example).
+"""
+function bubblebath!(
+    spheres::Vector{Sphere{D}},
+    radius_pdf,
+    ϕ_max::Real,
+    extent::NTuple{D,Real};
+    min_distance::Real = 0.0,
+    through_boundaries = false,
+    max_tries = 10000,
+    max_fails = 100
+)::Vector{Sphere{D}} where D
+    radii = generate_radii(radius_pdf, ϕ_max, extent)
+    bubblebath!(spheres, radii, extent;
+        min_distance, through_boundaries, max_tries, max_fails
+    )
+end
+
+"""
+    bubblebath!(
+        spheres::Vector{Sphere{D}},
+        radii::Vector{<:Real}, extent::NTuple{D,Real};
+        min_distance::Real = 0.0, through_boundaries = false,
+        max_tries = 10000, max_fails = 100
+    )::Vector{Sphere{D}} where D
+In-place version of `bubblebath`, adds new spheres to the
+`spheres` vector (which can be already populated).
+"""
+function bubblebath!(
+    spheres::Vector{Sphere{D}},
+    radii::Vector{<:Real},
+    extent::NTuple{D,Real};
+    min_distance::Real = 0.0,
+    through_boundaries = false,
+    max_tries = 10000,
+    max_fails = 100
+)::Vector{Sphere{D}} where D
+    sizehint!(spheres, length(spheres)+length(radii))
+    fails = 0
+    for radius in sort(radii, rev=true)
+        tries = 0
+        Δ = through_boundaries ? 0.0 : radius
+        while true
+            if tries > max_tries
+                if fails > max_fails
+                    @info "Reached max. number of tries. Interrupting."
+                    @goto packing_complete
+                else
+                    fails += 1
+                    break
+                end
+            end
+            pos = Δ .+ Tuple(rand(D)) .* (extent .- 2Δ)
+            isvalid_pos = (
+                !is_overlapping(pos, radius+min_distance, spheres) &&
+                (through_boundaries || is_inside_boundaries(pos, radius, extent))
+            )
+            if isvalid_pos
+                push!(spheres, Sphere(pos, radius))
+                break
+            else
+                tries += 1
+            end
+        end
+    end
+    @label packing_complete
+    @info "$(length(spheres))/$(length(radii)) spheres inserted."
+    return nothing
 end
