@@ -176,7 +176,7 @@ end
         radius_pdf, ϕ_max::Real, extent::NTuple{D,Real};
         min_distance::Real = 0.0, through_boundaries = false,
         max_tries = 10000, max_fails = 100
-    )::Vector{Sphere{D}} where D
+    ) where D
 In-place version of `bubblebath`, adds new spheres to the `spheres`
 vector, which can be already populated.
 
@@ -198,7 +198,7 @@ function bubblebath!(
     through_boundaries = false,
     max_tries = 10000,
     max_fails = 100
-)::Vector{Sphere{D}} where D
+)::Nothing where D
     radii = generate_radii(radius_pdf, ϕ_max, extent)
     bubblebath!(spheres, radii, extent;
         min_distance, through_boundaries, max_tries, max_fails
@@ -211,7 +211,7 @@ end
         radii::Vector{<:Real}, extent::NTuple{D,Real};
         min_distance::Real = 0.0, through_boundaries = false,
         max_tries = 10000, max_fails = 100
-    )::Vector{Sphere{D}} where D
+    ) where D
 In-place version of `bubblebath`, adds new spheres to the
 `spheres` vector (which can be already populated).
 """
@@ -223,7 +223,7 @@ function bubblebath!(
     through_boundaries = false,
     max_tries = 10000,
     max_fails = 100
-)::Vector{Sphere{D}} where D
+)::Nothing where D
     sizehint!(spheres, length(spheres)+length(radii))
     fails = 0
     for radius in sort(radii, rev=true)
