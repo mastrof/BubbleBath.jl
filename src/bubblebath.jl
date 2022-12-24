@@ -180,14 +180,13 @@ end
 In-place version of `bubblebath`, adds new spheres to the `spheres`
 vector, which can be already populated.
 
-Here, `ϕ_max` is assumed to also account for all spheres that might
+Here, `ϕ_max` does **not** account for spheres that might
 already be present in the `spheres` vector.
-E.g. if `packing_fraction(spheres, extent)` is 0.4 and `ϕ_max=0.3`,
-then the algorithm assumes that the target packing is already reached
-and no new spheres are generated.
-To exclude pre-initialized spheres from the packing fraction limit,
-increase `ϕ_max` accordingly
-(`ϕ_max = 0.3+packing_fraction(spheres,extent)` for this example).
+E.g. if `packing_fraction(spheres, extent)` is 0.2 and `ϕ_max=0.3`,
+then the algorithm generates new spheres for a packing fraction of 0.3,
+which upon insertion will (try to) add up to a total packing fraction of 0.5.
+To account for the pre-initialized spheres, decrease `ϕ_max` accordingly
+(`ϕ_max = 0.3-packing_fraction(spheres,extent)` giving 0.1 for this example).
 """
 function bubblebath!(
     spheres::Vector{Sphere{D}},
