@@ -1,5 +1,6 @@
 using BubbleBath
 using Distributions: Uniform
+using LinearAlgebra: norm
 using Test
 
 @testset "BubbleBath.jl" begin
@@ -61,5 +62,17 @@ using Test
         # packing fraction is below ϕ_max
         ϕ = packing_fraction(bath, extent)
         @test ϕ ≤ ϕ_max
+
+        extent = ntuple(_ -> 10, 3)
+        radius_pdf = [2.0]
+        ϕ_max = 0.4
+        min_distance = 0.5
+        bath = bubblebath(radius_pdf, ϕ_max, extent; min_distance)
+        # all spheres should be at distance > min_distance (between their surfaces)
+        surface_distances = vec([
+            norm(bath[i].pos .- bath[j].pos) - (bath[i].radius + bath[j].radius)
+            for i in eachindex(bath), j in eachindex(bath) if j>i
+        ])
+        @test all(surface_distances .≥ min_distance)
     end
 end
