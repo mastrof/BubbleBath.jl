@@ -7,7 +7,6 @@ function circle(x,y,r,n=500)
     x .+ r.*sin.(θ), y .+ r.*cos.(θ)
 end # function
 
-radius_pdf = Exponential(0.5)
 L = 100
 extent = (L,L)
 R = 14
@@ -16,6 +15,8 @@ spheres = [
     Sphere((2L/3,L/3), R),
     Sphere((L/2,2L/3), R)
 ]
+
+radius_pdf = Exponential(0.5)
 ϕ_max = 0.3 - packing_fraction(spheres, extent)
 min_distance = 1.0
 bubblebath!(spheres, radius_pdf, ϕ_max, extent; min_distance)
@@ -26,7 +27,7 @@ plot(
     ratio=1, legend=false,
     grid=false, axis=false,
     bgcolor=:transparent,
-    size=(400,400)
+    size=(600,600)
 )
 for i in eachindex(spheres)
     s = spheres[i]
