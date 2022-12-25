@@ -3,13 +3,26 @@ using Distributions: Uniform
 using LinearAlgebra: norm
 using Test
 
+function capture_stderr(f, args, kwargs)
+    original_stderr = stderr
+    out_read, out_write = redirect_stderr()
+    f(args...; kwargs...)
+    close(out_write)
+    data = readavailable(out_read)
+    close(out_read)
+    s = String(copy(data))
+    redirect_stderr(original_stderr)
+    return s
+end
+
 @testset "BubbleBath.jl" begin
     @testset "Spheres" begin
+        # sphere dimensionality must match pos length
+        @test_throws MethodError Sphere{2}((1.0,1.0,1.0), 1)
+        @test_throws MethodError Sphere{3}((1.0,1.0), 1)
+        # if sphere dimensionality is not specified, inherit from pos
         radius = 1
         pos = ntuple(_ -> 5.0, 3)
-        # sphere dimensionality must match pos length
-        @test_throws MethodError Sphere{2}(pos, radius)
-        # if sphere dimensionality is not specified, inherit from pos
         sphere = Sphere(pos, radius)
         @test sphere isa Sphere{3}
         # check fields are assigned correctly
@@ -45,6 +58,12 @@ using Test
         # if through_boundaries = false (default), sphere can't be inserted
         bath = bubblebath([r], extent)
         @test isempty(bath)
+        # if max fails are reached, should print info message
+        msg = capture_stderr(bubblebath,
+            ([r,r], extent),
+            (max_tries=0, max_fails=0)
+        )
+        @test contains(msg, "Reached max. number of tries")
         # if through_boundaries = true, it will surely cross all domain boundaries
         bath = bubblebath([r], extent; through_boundaries=true)
         for i in 1:3
@@ -74,5 +93,43 @@ using Test
             for i in eachindex(bath), j in eachindex(bath) if j>i
         ])
         @test all(surface_distances .≥ min_distance)
+    end
+
+    @testset "In-place Bubblebath" begin
+        L = 10
+        extent = (L,L)
+        # initialize with one sphere of radius 3
+        spheres = [Sphere((L/2,L/2), 3.0)]
+        # add 10 more spheres of radius 1
+        r = 1.0
+        radii = repeat([r], 10)
+        bubblebath!(spheres, radii, extent)
+        # should be a total of 11 spheres
+        @test length(spheres) == 11
+        @test count(map(s -> s.radius==3, spheres)) == 1
+        @test count(map(s -> s.radius==1, spheres)) == 10
+        # the new spheres should not overlap with the original one
+        overlaps = [
+            norm(spheres[1].pos .- s.pos) ≤ spheres[1].radius + s.radius
+            for s in spheres[2:end]
+        ]
+        @test !(any(overlaps))
+        
+        L = 10
+        extent = (L,L)
+        r = L/2
+        spheres_old = [Sphere((L/2,L/2), r)] # largest sphere to fit extent
+        spheres_new = copy(spheres_old)
+        # should add nothing since r is too large to fit another sphere
+        bubblebath!(spheres_new, [r], extent)
+        @test spheres_new == spheres_old
+        # if max fails are reached, should print info message
+        max_tries = 1
+        max_fails = 1
+        msg = capture_stderr(bubblebath!,
+            (spheres_new, [r,r], extent),
+            (max_tries=0, max_fails=0)
+        )
+        @test contains(msg, "Reached max. number of tries")
     end
 end
