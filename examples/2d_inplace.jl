@@ -2,32 +2,33 @@ using BubbleBath
 using Distributions: Exponential
 using Plots
 
-function circle(x,y,r,n=500)
+function circle(x,y,r,n=100)
     θ = LinRange(0, 2π, n)
     x .+ r.*sin.(θ), y .+ r.*cos.(θ)
 end # function
 
-L = 100
-extent = (L,L)
-R = 14
+Lx = 400
+Ly = 400
+extent = (Lx,Ly)
+R = 50
+D = 60
 spheres = [
-    Sphere((L/3,L/3), R),
-    Sphere((2L/3,L/3), R),
-    Sphere((L/2,2L/3), R)
+    Sphere((Lx/2-D,Ly/2-D), R),
+    Sphere((Lx/2+D,Ly/2-D), R),
+    Sphere((Lx/2,Ly/2+3D/4), R)
 ]
 
-radius_pdf = Exponential(0.5)
-ϕ_max = 0.3 - packing_fraction(spheres, extent)
-min_distance = 1.0
+radius_pdf = Exponential(2.0)
+ϕ_max = 0.25 - packing_fraction(spheres, extent)
+min_distance = 2.0
 bubblebath!(spheres, radius_pdf, ϕ_max, extent; min_distance)
-
 
 plot(
     xlims=(0,extent[1]), ylims=(0,extent[2]),
     ratio=1, legend=false,
     grid=false, axis=false,
     bgcolor=:transparent,
-    size=(600,600)
+    size=(Lx,Ly)
 )
 for i in eachindex(spheres)
     s = spheres[i]

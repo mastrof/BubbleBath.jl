@@ -1,13 +1,14 @@
 # BubbleBath.jl
 
-<div style="text-align:center">
-<img src="examples/bubblebath_logo.svg" width="300px">
+<p align="center" width="100%">
+<img src="examples/bubblebath_logo.svg">
+</p>
 
 [![Build Status](https://github.com/mastrof/BubbleBath.jl/workflows/CI/badge.svg)](https://github.com/mastrof/BubbleBath.jl/actions)
 [![codecov](https://codecov.io/gh/mastrof/BubbleBath.jl/branch/main/graphs/badge.svg)](https://codecov.io/gh/mastrof/BubbleBath.jl)
 
 Generate loose packings of spheres in orthorhombic domains, in 2 and 3 dimensions.
-</div>
+
 
 ## Features
 * Fill a domain with spheres from a given distribution of radii to reach a target
@@ -69,18 +70,20 @@ For example, to produce the `BubbleBath.jl` logo:
 ```julia
 using Distributions: Exponential
 # initialise vector with three spheres at desired locations
-L = 100
-extent = (L,L)
-R = 14
+Lx = 400
+Ly = 400
+extent = (Lx,Ly)
+R = 50
+D = 60
 spheres = [
-    Sphere((L/3,L/3), R),
-    Sphere((2L/3,L/3), R),
-    Sphere((L/2,2L/3), R)
+    Sphere((Lx/2-D,Ly/2-D), R),
+    Sphere((Lx/2+D,Ly/2-D), R),
+    Sphere((Lx/2,Ly/2+3D/4), R)
 ]
 # add new spheres with exponential distribution of radii
-radius_pdf = Exponential(0.5)
-ϕ_max = 0.3 - packing_fraction(spheres, extent)
-min_distance = 1.0
+radius_pdf = Exponential(2.0)
+ϕ_max = 0.25 - packing_fraction(spheres, extent)
+min_distance = 2.0
 bubblebath!(spheres, radius_pdf, ϕ_max, extent; min_distance)
 ```
-![BubbleBath.jl logo](examples/bubblebath_logo.svg)
+<img src="examples/2d_inplace.svg" width="600">
