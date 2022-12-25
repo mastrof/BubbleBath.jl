@@ -33,7 +33,7 @@ Evaluate the packing fraction of a collection of spheres with radii `radii`
 in domain `extent`.
 """
 function packing_fraction(
-    radii::Vector{Real},
+    radii::Vector{<:Real},
     extent::NTuple{D, Real}
 )::Float64 where D
     V₀ = prod(extent)

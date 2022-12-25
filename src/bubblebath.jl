@@ -29,7 +29,7 @@ function bubblebath(
     max_tries = 10000,
     max_fails = 100
 )::Vector{Sphere{D}} where D
-    radii = generate_radii(radius_pdf, ϕ_max, extent)
+    radii = generate_radii(radius_pdf, ϕ_max, extent; max_tries)
     bubblebath(radii, extent;
         min_distance, through_boundaries, max_tries, max_fails
     )
@@ -45,18 +45,21 @@ with a limit packing fraction `ϕ_max` in the domain `extent`.
 function generate_radii(
     radius_pdf,
     ϕ_max::Real,
-    extent::NTuple{D,Real}
+    extent::NTuple{D,Real};
+    max_tries = 10000
 )::Vector{Float64} where D
     radii = Float64[]
     V₀ = prod(extent)
+    tries = 0
     while true
         r = rand(radius_pdf)
         V = volume(r, D)
-        ϕ = isempty(radii) ? 0.0 : (sum(volume.(radii,D))+V)/V₀
+        ϕ = (sum(volume.(radii,D))+V)/V₀
         if ϕ ≤ ϕ_max
             push!(radii, r)
         else
-            break
+            tries += 1
+            tries > max_tries && break
         end
     end
     return radii
@@ -198,7 +201,7 @@ function bubblebath!(
     max_tries = 10000,
     max_fails = 100
 )::Nothing where D
-    radii = generate_radii(radius_pdf, ϕ_max, extent)
+    radii = generate_radii(radius_pdf, ϕ_max, extent; max_tries)
     bubblebath!(spheres, radii, extent;
         min_distance, through_boundaries, max_tries, max_fails
     )
