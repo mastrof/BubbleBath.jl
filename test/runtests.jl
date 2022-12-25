@@ -33,7 +33,8 @@ end
         sphere2 = Sphere(pos, radius)
         @test sphere2.pos == sphere.pos
     end
-    @testset "BubbleBath algorithm" begin
+
+    @testset "Bubblebath" begin
         L = 10
         extent = ntuple(_ -> L, 3)
         r = 4.0
@@ -95,7 +96,7 @@ end
         @test all(surface_distances .≥ min_distance)
     end
 
-    @testset "In-place Bubblebath" begin
+    @testset "In-place Bubbleath" begin
         L = 10
         extent = (L,L)
         # initialize with one sphere of radius 3
@@ -131,5 +132,45 @@ end
             (max_tries=0, max_fails=0)
         )
         @test contains(msg, "Reached max. number of tries")
+    end
+
+    @testset "Packing fraction" begin
+        # packing fraction should match theoretical values
+        L = 10
+        extent = (L,L)
+        r = 4
+        bath = bubblebath([r], extent)
+        @test packing_fraction(bath, extent) ≈ π*r^2 / L^2 
+        extent = (L,L,L)
+        bath = bubblebath([r], extent)
+        @test packing_fraction(bath, extent) ≈ 4π*r^3/3 / L^3
+
+        # packing fractions produced by bubblebath should never be > ϕ_max
+        extent = (8, 10)
+        radius_pdf = Uniform(2,5)
+        ϕ_max = 0.2
+        bath = bubblebath(radius_pdf, ϕ_max, extent)
+        @test packing_fraction(bath, extent) ≤ ϕ_max
+        extent = (8, 10, 12)
+        radius_pdf = Uniform(2,5)
+        ϕ_max = 0.2
+        bath = bubblebath(radius_pdf, ϕ_max, extent)
+        @test packing_fraction(bath, extent) ≤ ϕ_max
+
+        # pre-initialize a bath
+        extent = (15, 15)
+        r = 3
+        bath = [Sphere((7.5,7.5), r)]
+        ϕ₀ = packing_fraction(bath, extent) # ≈ 0.126
+        # fill with more spheres
+        radius_pdf = [0.1]
+        ϕ_max = 0.3
+        bubblebath!(bath, radius_pdf, ϕ_max, extent)
+        # final ϕ will be ϕ_max+ϕ₀ ≈ 0.426
+        @test packing_fraction(bath, extent) ≈ ϕ_max+ϕ₀ atol=0.02
+        bath = [Sphere((7.5,7.5), r)]
+        bubblebath!(bath, radius_pdf, ϕ_max-ϕ₀, extent)
+        # now final ϕ will be ϕ_max
+        @test packing_fraction(bath, extent) ≈ ϕ_max atol=0.02
     end
 end
