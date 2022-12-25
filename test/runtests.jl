@@ -97,7 +97,7 @@ end
     end
 
     @testset "In-place Bubbleath" begin
-        L = 10
+        L = 50
         extent = (L,L)
         # initialize with one sphere of radius 3
         spheres = [Sphere((L/2,L/2), 3.0)]
@@ -144,6 +144,12 @@ end
         extent = (L,L,L)
         bath = bubblebath([r], extent)
         @test packing_fraction(bath, extent) ≈ 4π*r^3/3 / L^3
+        # test same behavior on radii vector instead of bath
+        @test packing_fraction([r], (L,L)) ≈ π*r^2 / L^2
+        @test packing_fraction([r], (L,L,L)) ≈ 4π*r^3/3 / L^3
+        # an empty collection should give 0 packing fraction
+        @test packing_fraction(Sphere{2}[], (L,L)) == 0
+        @test packing_fraction(Float64[], (L,L)) == 0
 
         # packing fractions produced by bubblebath should never be > ϕ_max
         extent = (8, 10)
