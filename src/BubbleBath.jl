@@ -14,7 +14,7 @@ Create a `Sphere{D}` object centered at `pos` with radius `radius`.
 """
 Sphere(pos::NTuple{D,Real}, radius::Real) where D = Sphere{D}(Float64.(pos),Float64(radius))
 
-include("bubblebath.jl")
+include("bubblebath_algorithm.jl")
 include("packing_fraction.jl")
 
 end
