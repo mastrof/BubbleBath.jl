@@ -64,6 +64,20 @@ bath = bubblebath(radius_pdf, ϕ_max, extent; min_distance)
 ```
 ![Bubblebath in 3D with minimum separation](examples/3d_mindist.svg)
 
+We can verify that the generated radii closely match the chosen distribution, even at relatively high packing fractions.
+```julia
+using Distributions: Exponential
+θ = 3.0 # average radius
+radius_pdf = Exponential(θ)
+extent = ntuple(_->300, 3)
+bath1 = bubblebath(radius_pdf, 0.3, extent)
+# this can take a while
+bath2 = bubblebath(radius_pdf, 0.6, extent)
+r1 = map(s -> s.radius, bath1)
+r2 = map(s -> s.radius, bath2)
+```
+![Comparison of theoretical and generated radius distributions](examples/radius_pdf.svg)
+
 Finally, `bubblebath` also has an in-place version `bubblebath!`, which can operate on pre-initialised
 vectors of `Sphere`s.
 For example, to produce the `BubbleBath.jl` logo:
