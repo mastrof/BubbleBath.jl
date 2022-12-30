@@ -53,6 +53,10 @@ function generate_radii(
     max_tries = 10000,
     verbose = true
 )::Vector{Float64} where D
+    # allow ϕ_max=1 as a way to fill the box as much as possible
+    if ~(0 < ϕ_max ≤ 1)
+        throw(ArgumentError("Packing fraction should be between 0 and 1."))
+    end
     radii = Float64[]
     V₀ = prod(extent)
     tries = 0
@@ -213,6 +217,11 @@ function bubblebath!(
     max_fails = 100,
     verbose = true
 )::Nothing where D
+    for r in radii
+        if r ≤ 0
+            throw(ArgumentError("Sphere radii must be non-negative real numbers."))
+        end
+    end
     n₀ = length(spheres)
     sizehint!(spheres, length(spheres)+n₀)
     fails = 0

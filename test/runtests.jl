@@ -34,12 +34,19 @@ end
         pos = ntuple(_ -> 5, 3)
         sphere2 = Sphere(pos, radius)
         @test sphere2.pos == sphere.pos
+        # negative radius not allowed
+        @test_throws ArgumentError Sphere((5,5), -1)
     end
 
     @testset "Bubblebath" begin
         L = 10
         extent = ntuple(_ -> L, 3)
         r = 4.0
+        # negative radii not allowed
+        @test_throws ArgumentError bubblebath([-r], extent)
+        # packing fraction must be ϕ∈(0,1]
+        @test_throws ArgumentError bubblebath([r], -0.1, extent)
+        @test_throws ArgumentError bubblebath([r], 1.1, extent)
         bath = bubblebath([r], extent)
         # should be a vector with only one sphere
         @test bath isa Vector{Sphere{3}}
