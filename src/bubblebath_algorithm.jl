@@ -4,7 +4,8 @@ export bubblebath, bubblebath!
     bubblebath(
         radius_pdf, ϕ_max::Real, extent::NTuple{D,Real};
         through_boundaries = false,
-        max_tries = 10000, max_fails = 100
+        max_tries = 10000, max_fails = 100,
+        verbose = true
     ) where D
 Generate a bath of spheres in the domain `extent`,
 extracting radii from `radius_pdf` trying to reach a target
@@ -19,6 +20,7 @@ The domain is filled with spheres in order of decreasing radius.
     to the next one.
 * `max_fails = 100`: Maximum number of failures (i.e. discarded spheres) allowed.
     Once `max_fails` is reached, the program halts.
+* `verbose = true`: Whether info logs should be printed.
 """
 function bubblebath(
     radius_pdf,
@@ -27,17 +29,19 @@ function bubblebath(
     min_distance::Real = 0.0,
     through_boundaries = false,
     max_tries = 10000,
-    max_fails = 100
+    max_fails = 100,
+    verbose = true
 )::Vector{Sphere{D}} where D
-    radii = generate_radii(radius_pdf, ϕ_max, extent; max_tries)
+    radii = generate_radii(radius_pdf, ϕ_max, extent; max_tries, verbose)
     bubblebath(radii, extent;
-        min_distance, through_boundaries, max_tries, max_fails
+        min_distance, through_boundaries, max_tries, max_fails, verbose
     )
 end
 
 """
     generate_radii(
-        radius_pdf, ϕ_max::Real, extent::NTuple{D,Real}
+        radius_pdf, ϕ_max::Real, extent::NTuple{D,Real};
+        max_tries = 10000, verbose = true
     ) where D
 Generate a vector of radii from the `radius_pdf` distribution,
 with a limit packing fraction `ϕ_max` in the domain `extent`.
@@ -46,7 +50,8 @@ function generate_radii(
     radius_pdf,
     ϕ_max::Real,
     extent::NTuple{D,Real};
-    max_tries = 10000
+    max_tries = 10000,
+    verbose = true
 )::Vector{Float64} where D
     radii = Float64[]
     V₀ = prod(extent)
@@ -62,6 +67,9 @@ function generate_radii(
             tries > max_tries && break
         end
     end
+    if verbose
+        @info "Generated $(length(radii)) spheres."
+    end
     return radii
 end
 
@@ -70,7 +78,8 @@ end
         radii::Vector{<:Real}, extent::NTuple{D,Real};
         min_distance = 0.0,
         through_boundaries = false,
-        max_tries = 10000, max_fails = 100
+        max_tries = 10000, max_fails = 100,
+        verbose = true
     ) where D
 Generate a bath of spheres with radii `radii` in the domain `extent`.
 """
@@ -80,11 +89,12 @@ function bubblebath(
     min_distance::Real = 0.0,
     through_boundaries = false,
     max_tries = 10000,
-    max_fails = 100
+    max_fails = 100,
+    verbose = true
 )::Vector{Sphere{D}} where D
     spheres = Sphere{D}[]
     bubblebath!(spheres, radii, extent;
-        min_distance, through_boundaries, max_tries, max_fails
+        min_distance, through_boundaries, max_tries, max_fails, verbose
     )
     return spheres
 end
@@ -151,7 +161,8 @@ end
         spheres::Vector{Sphere{D}},
         radius_pdf, ϕ_max::Real, extent::NTuple{D,Real};
         min_distance::Real = 0.0, through_boundaries = false,
-        max_tries = 10000, max_fails = 100
+        max_tries = 10000, max_fails = 100,
+        verbose = true
     ) where D
 In-place version of `bubblebath`, adds new spheres to the `spheres`
 vector, which can be already populated.
@@ -172,11 +183,12 @@ function bubblebath!(
     min_distance::Real = 0.0,
     through_boundaries = false,
     max_tries = 10000,
-    max_fails = 100
+    max_fails = 100,
+    verbose = true
 )::Nothing where D
-    radii = generate_radii(radius_pdf, ϕ_max, extent; max_tries)
+    radii = generate_radii(radius_pdf, ϕ_max, extent; max_tries, verbose)
     bubblebath!(spheres, radii, extent;
-        min_distance, through_boundaries, max_tries, max_fails
+        min_distance, through_boundaries, max_tries, max_fails, verbose
     )
 end
 
@@ -185,7 +197,8 @@ end
         spheres::Vector{Sphere{D}},
         radii::Vector{<:Real}, extent::NTuple{D,Real};
         min_distance::Real = 0.0, through_boundaries = false,
-        max_tries = 10000, max_fails = 100
+        max_tries = 10000, max_fails = 100,
+        verbose = true
     ) where D
 In-place version of `bubblebath`, adds new spheres to the
 `spheres` vector (which can be already populated).
@@ -197,9 +210,11 @@ function bubblebath!(
     min_distance::Real = 0.0,
     through_boundaries = false,
     max_tries = 10000,
-    max_fails = 100
+    max_fails = 100,
+    verbose = true
 )::Nothing where D
-    sizehint!(spheres, length(spheres)+length(radii))
+    n₀ = length(spheres)
+    sizehint!(spheres, length(spheres)+n₀)
     fails = 0
     for radius in sort(radii, rev=true)
         tries = 0
@@ -207,7 +222,7 @@ function bubblebath!(
         while true
             if tries > max_tries
                 if fails > max_fails
-                    @info "Reached max. number of tries. Interrupting."
+                    @warn "Reached max. number of tries. Interrupting."
                     @goto packing_complete
                 else
                     fails += 1
@@ -228,6 +243,8 @@ function bubblebath!(
         end
     end
     @label packing_complete
-    @info "$(length(spheres))/$(length(radii)) spheres inserted."
+    if verbose
+        @info "$(length(spheres)-n₀)/$(length(radii)) new spheres inserted."
+    end
     return nothing
 end
