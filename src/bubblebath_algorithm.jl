@@ -83,36 +83,9 @@ function bubblebath(
     max_fails = 100
 )::Vector{Sphere{D}} where D
     spheres = Sphere{D}[]
-    sizehint!(spheres, length(radii))
-    fails = 0
-    for radius in sort(radii, rev=true)
-        tries = 0
-        Δ = through_boundaries ? 0.0 : radius
-        while true
-            if tries > max_tries
-                if fails > max_fails
-                    @info "Reached max. number of tries. Interrupting."
-                    @goto packing_complete
-                else
-                    fails += 1
-                    break
-                end
-            end
-            pos = Δ .+ Tuple(rand(D)) .* (extent .- 2Δ)
-            isvalid_pos = (
-                !is_overlapping(pos, radius+min_distance, spheres) &&
-                (through_boundaries || is_inside_boundaries(pos, radius, extent))
-            )
-            if isvalid_pos
-                push!(spheres, Sphere(pos, radius))
-                break
-            else
-                tries += 1
-            end
-        end
-    end
-    @label packing_complete
-    @info "$(length(spheres))/$(length(radii)) spheres inserted."
+    bubblebath!(spheres, radii, extent;
+        min_distance, through_boundaries, max_tries, max_fails
+    )
     return spheres
 end
 
