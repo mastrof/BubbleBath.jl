@@ -7,6 +7,8 @@ function capture_stderr(f, args, kwargs)
     original_stderr = stderr
     out_read, out_write = redirect_stderr()
     f(args...; kwargs...)
+    # without this the program hangs if f does not write to stderr
+    @info "dummy text"
     close(out_write)
     data = readavailable(out_read)
     close(out_read)
@@ -94,6 +96,24 @@ end
             for i in eachindex(bath), j in eachindex(bath) if j>i
         ])
         @test all(surface_distances .≥ min_distance)
+
+        # test the verbose keyword
+        L = 10
+        extent = (L,L)
+        radius_pdf = Uniform(1,2)
+        ϕ_max = 0.3
+        msg = capture_stderr(bubblebath,
+            (radius_pdf, ϕ_max, extent),
+            (verbose=true,) # default
+        )
+        @test contains(msg, r"Generated \d+ spheres")
+        @test contains(msg, r"\d+/\d+ new spheres inserted")
+        msg = capture_stderr(bubblebath,
+            (radius_pdf, ϕ_max, extent),
+            (verbose=false,)
+        )
+        @test ~contains(msg, r"Generated \d+ spheres")
+        @test ~contains(msg, r"\d+/\d+ new spheres inserted")
     end
 
     @testset "In-place Bubbleath" begin
