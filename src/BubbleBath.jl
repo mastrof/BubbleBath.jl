@@ -18,6 +18,7 @@ struct Sphere{D}
         new{D}(Float64.(pos), Float64(radius))
     end
 end
+Sphere(pos::AbstractVector{<:Real}, radius::Real) = Sphere(Tuple(pos), radius)
 
 include("bubblebath_algorithm.jl")
 include("packing_fraction.jl")
