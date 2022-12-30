@@ -34,6 +34,13 @@ end
         pos = ntuple(_ -> 5, 3)
         sphere2 = Sphere(pos, radius)
         @test sphere2.pos == sphere.pos
+        # if pos is an AbstractVector it should be converted to a tuple
+        pos = rand(3)
+        sphere = Sphere(pos, 1)
+        @test sphere.pos == Tuple(pos)
+        pos = 1:5
+        sphere = Sphere(pos, 1)
+        @test sphere.pos == Tuple(pos)
         # non-positive radius not allowed
         @test_throws ArgumentError Sphere((5,5), 0)
         @test_throws ArgumentError Sphere((5,5), -1)
