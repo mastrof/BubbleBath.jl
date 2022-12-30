@@ -19,11 +19,11 @@ end
 
 @testset "BubbleBath.jl" begin
     @testset "Spheres" begin
-        # sphere dimensionality must match pos length
-        @test_throws MethodError Sphere{2}((1.0,1.0,1.0), 1)
-        @test_throws MethodError Sphere{3}((1.0,1.0), 1)
-        # if sphere dimensionality is not specified, inherit from pos
+        # sphere dimensionality is always inherited from pos
         radius = 1
+        pos = ntuple(_ -> 5.0, 2)
+        sphere = Sphere(pos, radius)
+        @test sphere isa Sphere{2}
         pos = ntuple(_ -> 5.0, 3)
         sphere = Sphere(pos, radius)
         @test sphere isa Sphere{3}
@@ -34,7 +34,15 @@ end
         pos = ntuple(_ -> 5, 3)
         sphere2 = Sphere(pos, radius)
         @test sphere2.pos == sphere.pos
-        # negative radius not allowed
+        # if pos is an AbstractVector it should be converted to a tuple
+        pos = rand(3)
+        sphere = Sphere(pos, 1)
+        @test sphere.pos == Tuple(pos)
+        pos = 1:5
+        sphere = Sphere(pos, 1)
+        @test sphere.pos == Tuple(pos)
+        # non-positive radius not allowed
+        @test_throws ArgumentError Sphere((5,5), 0)
         @test_throws ArgumentError Sphere((5,5), -1)
     end
 
