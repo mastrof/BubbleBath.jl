@@ -241,6 +241,9 @@ end
         @test wm₁[I]
         # if boundaries=:wrap the oppposite edge is occupied
         @test ~wm₂[I]
+        
+        # throw error if boundaries is not :cut or :wrap
+        @test_throws ArgumentError walkmap(spheres, extent, res; boundaries=:periodic)
     end
 
     @testset "Packing fraction" begin
