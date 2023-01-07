@@ -21,6 +21,7 @@ end
 Sphere(pos::AbstractVector{<:Real}, radius::Real) = Sphere(Tuple(pos), radius)
 
 include("bubblebath_algorithm.jl")
+include("walkmaps.jl")
 include("packing_fraction.jl")
 
 end
