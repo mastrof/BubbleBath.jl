@@ -22,6 +22,7 @@ The domain is filled with spheres in order of decreasing radius.
 * `max_fails = 100`: Maximum number of failures (i.e. discarded spheres) allowed.
     Once `max_fails` is reached, the program halts.
 * `verbose = true`: Whether info logs should be printed.
+* `rng = Random.default_rng()`: Random number generator.
 
 If a negative `min_distance` is used or `through_boundaries` is set to true,
 the packing fraction estimated during the generation will not correspond to the
@@ -36,18 +37,19 @@ function bubblebath(
     through_boundaries = false,
     max_tries = 10000,
     max_fails = 100,
-    verbose = true
+    verbose = true,
+    rng = default_rng()
 )::Vector{Sphere{D}} where D
-    radii = generate_radii(radius_pdf, ϕ_max, extent; max_tries, verbose)
+    radii = generate_radii(radius_pdf, ϕ_max, extent; max_tries, verbose, rng)
     bubblebath(radii, extent;
-        min_distance, through_boundaries, max_tries, max_fails, verbose
+        min_distance, through_boundaries, max_tries, max_fails, verbose, rng
     )
 end
 
 """
     generate_radii(
         radius_pdf, ϕ_max::Real, extent::NTuple{D,Real};
-        max_tries = 10000, verbose = true
+        max_tries = 10000, verbose = true, rng = default_rng()
     ) where D
 Generate a vector of radii from the `radius_pdf` distribution,
 with a limit packing fraction `ϕ_max` in the domain `extent`.
@@ -57,7 +59,8 @@ function generate_radii(
     ϕ_max::Real,
     extent::NTuple{D,Real};
     max_tries = 10000,
-    verbose = true
+    verbose = true,
+    rng = default_rng()
 )::Vector{Float64} where D
     # allow ϕ_max=1 as a way to fill the box as much as possible
     if ~(0 < ϕ_max ≤ 1)
@@ -67,7 +70,7 @@ function generate_radii(
     V₀ = prod(extent)
     tries = 0
     while true
-        r = rand(radius_pdf)
+        r = rand(rng, radius_pdf)
         V = volume(r, D)
         ϕ = (sum(volume.(radii,D))+V)/V₀
         if ϕ ≤ ϕ_max
@@ -89,7 +92,8 @@ end
         min_distance = 0.0,
         through_boundaries = false,
         max_tries = 10000, max_fails = 100,
-        verbose = true
+        verbose = true,
+        rng = default_rng()
     ) where D
 Generate a bath of spheres with radii `radii` in the domain `extent`.
 """
@@ -100,11 +104,12 @@ function bubblebath(
     through_boundaries = false,
     max_tries = 10000,
     max_fails = 100,
-    verbose = true
+    verbose = true,
+    rng = default_rng()
 )::Vector{Sphere{D}} where D
     spheres = Sphere{D}[]
     bubblebath!(spheres, radii, extent;
-        min_distance, through_boundaries, max_tries, max_fails, verbose
+        min_distance, through_boundaries, max_tries, max_fails, verbose, rng
     )
     return spheres
 end
@@ -172,7 +177,7 @@ end
         radius_pdf, ϕ_max::Real, extent::NTuple{D,Real};
         min_distance::Real = 0.0, through_boundaries = false,
         max_tries = 10000, max_fails = 100,
-        verbose = true
+        verbose = true, rng = default_rng()
     ) where D
 In-place version of `bubblebath`, adds new spheres to the `spheres`
 vector, which can be already populated.
@@ -194,11 +199,12 @@ function bubblebath!(
     through_boundaries = false,
     max_tries = 10000,
     max_fails = 100,
-    verbose = true
+    verbose = true,
+    rng = default_rng()
 )::Nothing where D
-    radii = generate_radii(radius_pdf, ϕ_max, extent; max_tries, verbose)
+    radii = generate_radii(radius_pdf, ϕ_max, extent; max_tries, verbose, rng)
     bubblebath!(spheres, radii, extent;
-        min_distance, through_boundaries, max_tries, max_fails, verbose
+        min_distance, through_boundaries, max_tries, max_fails, verbose, rng
     )
 end
 
@@ -208,7 +214,7 @@ end
         radii::Vector{<:Real}, extent::NTuple{D,Real};
         min_distance::Real = 0.0, through_boundaries = false,
         max_tries = 10000, max_fails = 100,
-        verbose = true
+        verbose = true, rng = default_rng()
     ) where D
 In-place version of `bubblebath`, adds new spheres to the
 `spheres` vector (which can be already populated).
@@ -221,7 +227,8 @@ function bubblebath!(
     through_boundaries = false,
     max_tries = 10000,
     max_fails = 100,
-    verbose = true
+    verbose = true,
+    rng = default_rng()
 )::Nothing where D
     for r in radii
         if r ≤ 0
@@ -244,7 +251,7 @@ function bubblebath!(
                     break
                 end
             end
-            pos = Δ .+ Tuple(rand(D)) .* (extent .- 2Δ)
+            pos = Δ .+ Tuple(rand(rng, D)) .* (extent .- 2Δ)
             isvalid_pos = (
                 !is_overlapping(pos, radius+min_distance, spheres) &&
                 (through_boundaries || is_inside_boundaries(pos, radius, extent))

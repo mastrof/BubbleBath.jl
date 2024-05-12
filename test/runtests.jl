@@ -1,6 +1,7 @@
 using BubbleBath
 using Distributions: Uniform
 using LinearAlgebra: norm
+using Random: Xoshiro
 using Test
 
 function capture_stderr(f, args, kwargs)
@@ -167,6 +168,18 @@ end
             (max_tries=0, max_fails=0)
         )
         @test contains(msg, "Reached max. number of tries")
+    end
+
+    @testset "RNG" begin
+        L = 50
+        extent = (L,L)
+        radius_pdf = Uniform(5, 10)
+        ϕ_max = 0.35
+        rng = Xoshiro(1)
+        spheres_1 = bubblebath(radius_pdf, ϕ_max, extent; rng)
+        rng = Xoshiro(1)
+        spheres_2 = bubblebath(radius_pdf, ϕ_max, extent; rng)
+        @test spheres_1 == spheres_2
     end
 
     @testset "Walkmap" begin
