@@ -1,6 +1,7 @@
 module BubbleBath
 
 using LinearAlgebra: norm
+using Random: AbstractRNG, default_rng
 
 export Sphere
 
