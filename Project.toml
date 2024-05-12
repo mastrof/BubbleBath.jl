@@ -1,7 +1,7 @@
 name = "BubbleBath"
 uuid = "06490a66-c478-4593-a275-4b14021bccc5"
 authors = ["Riccardo Foffi <riccardo.foffi@protonmail.com> and contributors"]
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
